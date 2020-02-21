@@ -1,0 +1,62 @@
+server {
+    listen       8000;
+    #server_name  localhost;
+
+    #charset koi8-r;
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    # manejamos el landing
+    rewrite ^${ROOT_URL}/$ ${ROOT_URL}/landing/ last;
+
+    # Manejamos las fuentes.
+    rewrite ^${ROOT_URL}/static/css/static/fonts/(.*)$ ${ROOT_URL}/static/fonts/$1 last;
+    rewrite ^${ROOT_URL}/app/static/css/static/fonts/(.*)$ ${ROOT_URL}/static/fonts/$1 last;
+
+    # manejamos /app/
+    rewrite ^${ROOT_URL}/app/(.*)$ ${ROOT_URL}/$1 last;
+
+    # Configuracion.
+    location = ${ROOT_URL}/conf {
+        default_type application/json;
+        return 200 '{"dropboxAppKey":"${DROPBOX_APP_KEY}","dropboxAppKeyFull":"${DROPBOX_APP_KEY_FULL}","githubClientId":"${GITHUB_CLIENT_ID}","githubClientSecret":"${GITHUB_CLIENT_SECRET}","googleClientId":"${GOOGLE_CLIENT_ID}","googleApiKey":"${GOOGLE_API_KEY}","wordpressClientId":"${WORDPRESS_CLIENT_ID}","paypalReceiverEmail":"${PAYPAL_RECEIVER_EMAIL}","allowSponsorship":true}';
+    }
+
+    # sitemap.xml
+    location = ${ROOT_URL}/sitemap.xml {
+        alias /html/dist/static/sitemap.xml;
+    }
+
+    # Callback
+    location = ${ROOT_URL}/oauth2/callback {
+        default_type text/html;
+        alias /html/dist/static/oauth2/callback.html;
+    }
+
+    # Manejmos el app
+    location = ${ROOT_URL}/app {
+        default_type text/html;
+        alias /html/dist/index.html;
+    }
+
+    # el landing
+    location ${ROOT_URL}/landing/ {
+        alias   /html/static/landing/;
+        index index.html index.htm;
+    }
+
+    # el default.
+    location ${ROOT_URL}/ {
+        alias   /html/dist/;
+        index index.html index.htm;
+    }
+
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
